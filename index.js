@@ -41,6 +41,8 @@ async function run() {
       const result = await campCollection.find().toArray();
       res.send(result);
     });
+
+    // get popular camp data
     app.get("/popular-camps", async (req, res) => {
       const query = req.query;
       const result = await campCollection
@@ -48,6 +50,15 @@ async function run() {
         .sort({ participantCount: -1 })
         .limit(6)
         .toArray();
+      res.send(result);
+    });
+
+    // get popular camp data id wise
+
+    app.get("/camps/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await campCollection.findOne(query);
       res.send(result);
     });
 
