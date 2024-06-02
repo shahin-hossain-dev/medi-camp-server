@@ -61,6 +61,13 @@ async function run() {
       const result = await campCollection.findOne(query);
       res.send(result);
     });
+    //registered-participant post to database
+
+    app.post("/registered-participant", (req, res) => {
+      const registerData = req.body;
+      // todo: send data to database
+      console.log(registerData);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
