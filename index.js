@@ -25,7 +25,7 @@ const uri = `mongodb+srv://${user}:${password}@cluster0.kdwhpbt.mongodb.net/?ret
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    strict: false,
     deprecationErrors: true,
   },
 });
@@ -44,6 +44,19 @@ async function run() {
       const result = await campCollection.find().toArray();
       res.send(result);
     });
+
+    //--- Problem solved, now it it working --- problem was {strict:true} in client object
+    // app.get("/camps/:searchText", async (req, res) => {
+    //   const text = req.params.searchText;
+    //   await campCollection.createIndex({
+    //     name: "text",
+    //     description: "text",
+    //   });
+    //   const query = { $text: { $search: text } };
+    //   const result = await campCollection.find(query).toArray();
+
+    //   res.send(result);
+    // });
 
     // get popular camp data
     app.get("/popular-camps", async (req, res) => {
