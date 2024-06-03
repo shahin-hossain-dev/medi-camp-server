@@ -34,8 +34,11 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
+    // database collections
     const campCollection = client.db("mediCampDB").collection("camps");
+    const participantsCollection = client
+      .db("mediCampDB")
+      .collection("participants");
 
     app.get("/camps", async (req, res) => {
       const result = await campCollection.find().toArray();
@@ -63,10 +66,19 @@ async function run() {
     });
     //registered-participant post to database
 
-    app.post("/registered-participant", (req, res) => {
+    app.post("/registered-participant", async (req, res) => {
       const registerData = req.body;
-      // todo: send data to database
-      console.log(registerData);
+      // insert a new participant
+      const result = await participantsCollection.insertOne(registerData);
+
+      // increase participant count field
+      const filter = { _id: new ObjectId(registerData.campId) };
+      const updatedDoc = {
+        $inc: { participantCount: 1 },
+      };
+      const increaseCount = await campCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+      // console.log(increaseCount);
     });
 
     // Send a ping to confirm a successful connection
