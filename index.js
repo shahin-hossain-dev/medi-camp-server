@@ -40,9 +40,31 @@ async function run() {
       .db("mediCampDB")
       .collection("participants");
 
+    // get all camps data
     app.get("/camps", async (req, res) => {
       const result = await campCollection.find().toArray();
       res.send(result);
+    });
+
+    // sort camp data
+    app.get("/campsAll", async (req, res) => {
+      const query = req.query;
+      // console.log(query);
+      if (query.sort === "Most Registered") {
+        const sortOption = { participantCount: -1 };
+        const result = await campCollection.find().sort(sortOption).toArray();
+        res.send(result);
+      }
+      if (query.sort === "A-Z Order") {
+        const sortOption = { campName: 1 };
+        const result = await campCollection.find().sort(sortOption).toArray();
+        res.send(result);
+      }
+      if (query.sort === "Camp Fees") {
+        const sortOption = { fees: -1 };
+        const result = await campCollection.find().sort(sortOption).toArray();
+        res.send(result);
+      }
     });
 
     //--- Problem solved, now it it working --- problem was {strict:true} in client object
@@ -77,6 +99,12 @@ async function run() {
       const result = await campCollection.findOne(query);
       res.send(result);
     });
+
+    // // sort camp items
+    // app.get('/camps-sort', async() => {
+    //   const
+    // })
+
     //registered-participant post to database
 
     app.post("/registered-participant", async (req, res) => {
