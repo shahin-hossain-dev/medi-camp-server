@@ -34,11 +34,13 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
     // database collections
     const campCollection = client.db("mediCampDB").collection("camps");
     const participantsCollection = client
       .db("mediCampDB")
       .collection("participants");
+    const userCollection = client.db("mediCampDB").collection("users");
 
     // get all camps data
     app.get("/camps", async (req, res) => {
@@ -104,6 +106,14 @@ async function run() {
     // app.get('/camps-sort', async() => {
     //   const
     // })
+
+    // user related API
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+      // console.log(user);
+    });
 
     //registered-participant post to database
 
