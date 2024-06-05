@@ -82,6 +82,7 @@ async function run() {
     //   res.send(result);
     // });
 
+    // camp related api
     // get popular camp data
     app.get("/popular-camps", async (req, res) => {
       const query = req.query;
@@ -106,6 +107,15 @@ async function run() {
     // app.get('/camps-sort', async() => {
     //   const
     // })
+
+    // manage camp data based on organizer
+
+    app.get("/organizer-camp", async (req, res) => {
+      const email = req.query.email;
+      const query = { createdBy: email };
+      const result = await campCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // user related API
     app.post("/users", async (req, res) => {
