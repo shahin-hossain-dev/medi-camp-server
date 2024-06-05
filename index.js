@@ -148,6 +148,37 @@ async function run() {
       res.send(result);
       // console.log(increaseCount);
     });
+    // ------------------------------
+    // Update Related API
+    //  ------------------------------
+
+    // update camp data
+    app.patch("/update-camp/:id", async (req, res) => {
+      const id = req.params.id;
+      const {
+        campName,
+        description,
+        image,
+        fees,
+        healthcareProfessional,
+        location,
+        dateAndTime,
+      } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          campName,
+          description,
+          image,
+          fees,
+          healthcareProfessional,
+          location,
+          dateAndTime,
+        },
+      };
+      const result = await campCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
 
     // Delete Related API
     //delete camp by organizer
