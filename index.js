@@ -114,6 +114,13 @@ async function run() {
       res.send(result);
       // console.log(user);
     });
+    // insert new camp to database
+
+    app.post("/camp-register", async (req, res) => {
+      const newCamp = req.body;
+      const result = await campCollection.insertOne(newCamp);
+      res.send(result);
+    });
 
     //registered-participant post to database
 
