@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -126,6 +126,14 @@ async function run() {
       res.send(result);
     });
 
+    // participants registered camps
+    app.get("/participant-camps", async (req, res) => {
+      const email = req.query.email;
+      const query = { participantEmail: email };
+      const result = await registeredCamps.find(query).toArray();
+      res.send(result);
+    });
+
     // --------------------------
     // user related API
     // ----------------------------
@@ -224,6 +232,27 @@ async function run() {
         option
       );
       res.send(result);
+    });
+
+    // payment System
+    app.post("/create-payment-intent", async (req, res) => {
+      const { pay } = req.body;
+
+      const amount = pay * 100;
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "usd",
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     // Send a ping to confirm a successful connection
