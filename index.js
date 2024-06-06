@@ -37,9 +37,7 @@ async function run() {
 
     // database collections
     const campCollection = client.db("mediCampDB").collection("camps");
-    const participantsCollection = client
-      .db("mediCampDB")
-      .collection("participants");
+    const registeredCamps = client.db("mediCampDB").collection("participants");
     const userCollection = client.db("mediCampDB").collection("users");
 
     // get all camps data
@@ -124,7 +122,7 @@ async function run() {
      */
     // get all participants data
     app.get("/registered-camps", async (req, res) => {
-      const result = await participantsCollection.find().toArray();
+      const result = await registeredCamps.find().toArray();
       res.send(result);
     });
 
@@ -150,7 +148,7 @@ async function run() {
     app.post("/registered-participant", async (req, res) => {
       const registerData = req.body;
       // insert a new participant
-      const result = await participantsCollection.insertOne(registerData);
+      const result = await registeredCamps.insertOne(registerData);
 
       // increase participant count field
       const filter = { _id: new ObjectId(registerData.campId) };
@@ -161,6 +159,7 @@ async function run() {
       res.send(result);
       // console.log(increaseCount);
     });
+
     // ------------------------------
     // Update Related API
     //  ------------------------------
@@ -199,6 +198,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await campCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Cancel Registered Participants
+    app.delete("/camp-cancel/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await registeredCamps.deleteOne(query);
       res.send(result);
     });
     // Send a ping to confirm a successful connection
