@@ -117,7 +117,20 @@ async function run() {
       res.send(result);
     });
 
+    /**
+     * ----------------------------
+     * participant related API
+     * ----------------------------
+     */
+    // get all participants data
+    app.get("/registered-camps", async (req, res) => {
+      const result = await participantsCollection.find().toArray();
+      res.send(result);
+    });
+
+    // --------------------------
     // user related API
+    // ----------------------------
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await userCollection.insertOne(user);
