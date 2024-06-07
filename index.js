@@ -39,6 +39,7 @@ async function run() {
     const campCollection = client.db("mediCampDB").collection("camps");
     const registeredCamps = client.db("mediCampDB").collection("participants");
     const userCollection = client.db("mediCampDB").collection("users");
+    const paymentCollection = client.db("mediCampDB").collection("payments");
 
     // get all camps data
     app.get("/camps", async (req, res) => {
@@ -131,6 +132,13 @@ async function run() {
       const email = req.query.email;
       const query = { participantEmail: email };
       const result = await registeredCamps.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/registered-camp/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await registeredCamps.findOne(query);
       res.send(result);
     });
 
@@ -234,25 +242,23 @@ async function run() {
       res.send(result);
     });
 
-    // payment System
+    // payment integrated System
     app.post("/create-payment-intent", async (req, res) => {
       const { pay } = req.body;
+      const amount = pay * 100; //stripe
 
-      const amount = pay * 100;
-
-      // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: "usd",
-        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        payment_method_types: ["card"],
       });
-
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+    // payments collection to database
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
