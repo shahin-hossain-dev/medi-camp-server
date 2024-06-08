@@ -149,6 +149,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/feedback", async (req, res) => {
+      const result = await feedbackCollection.find().toArray();
+      res.send(result);
+    });
+
     // --------------------------
     // user related API
     // ----------------------------
