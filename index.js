@@ -40,6 +40,7 @@ async function run() {
     const registeredCamps = client.db("mediCampDB").collection("participants");
     const userCollection = client.db("mediCampDB").collection("users");
     const paymentCollection = client.db("mediCampDB").collection("payments");
+    const feedbackCollection = client.db("mediCampDB").collection("feedback");
 
     // get all camps data
     app.get("/camps", async (req, res) => {
@@ -142,6 +143,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/payments", async (req, res) => {
+      const email = req.query.email;
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    });
+
     // --------------------------
     // user related API
     // ----------------------------
@@ -174,6 +181,51 @@ async function run() {
       const increaseCount = await campCollection.updateOne(filter, updatedDoc);
       res.send(result);
       // console.log(increaseCount);
+    });
+
+    // payment integrated System
+    app.post("/create-payment-intent", async (req, res) => {
+      const { pay } = req.body;
+      const amount = pay * 100; //stripe
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+    // update registered camps payment transaction
+    app.post("/payments/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const { transactionId, transactionDate, paymentStatus } = req.body;
+      // update registered camp
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          transactionId,
+          transactionDate,
+          paymentStatus,
+        },
+      };
+      const result = await registeredCamps.updateOne(
+        filter,
+        updatedDoc,
+        option
+      );
+      // insert payments database
+      const paymentResult = await paymentCollection.insertOne(payment);
+      // res.send(result);
+      res.send(paymentResult);
+    });
+
+    // participants feedback API
+    app.post("/feedback", async (req, res) => {
+      const feedback = req.body;
+      const result = await feedbackCollection.insertOne(feedback);
+      res.send(result);
     });
 
     // ------------------------------
@@ -239,45 +291,13 @@ async function run() {
         updatedDoc,
         option
       );
-      res.send(result);
-    });
-
-    // payment integrated System
-    app.post("/create-payment-intent", async (req, res) => {
-      const { pay } = req.body;
-      const amount = pay * 100; //stripe
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: "usd",
-        payment_method_types: ["card"],
-      });
-      res.send({ clientSecret: paymentIntent.client_secret });
-    });
-    // update registered camps payment transaction
-    app.post("/payments/:id", async (req, res) => {
-      const id = req.params.id;
-      const payment = req.body;
-      const { transactionId, transactionDate, paymentStatus } = req.body;
-      // update registered camp
-      const filter = { _id: new ObjectId(id) };
-      const option = { upsert: true };
-      const updatedDoc = {
-        $set: {
-          transactionId,
-          transactionDate,
-          paymentStatus,
-        },
-      };
-      const result = await registeredCamps.updateOne(
-        filter,
+      // payment database confirm status update
+      const paymentResult = await paymentCollection.updateOne(
+        { registeredId: id },
         updatedDoc,
         option
       );
-      // insert payments database
-      const paymentResult = await paymentCollection.insertOne(payment);
-      // res.send(result);
-      res.send(paymentResult);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
@@ -293,5 +313,5 @@ async function run() {
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`Bistro boss server running port on ${port}`);
+  console.log(`Medi-camp server running port on ${port}`);
 });
