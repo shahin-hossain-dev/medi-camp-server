@@ -86,6 +86,17 @@ async function run() {
       next();
     };
 
+    // user role
+    app.get("/user/role/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const option = {
+        projection: { _id: 0, role: 1 },
+      };
+      const role = await userCollection.findOne(query, option);
+      res.send(role);
+    });
+
     // get all camps data
     app.get("/camps", async (req, res) => {
       const result = await campCollection.find().toArray();
