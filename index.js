@@ -110,12 +110,27 @@ async function run() {
     //   const
     // })
 
+    // manage camp count
+    app.get("/organizer-camp-count", async (req, res) => {
+      const email = req.query.email;
+      const query = { createdBy: email };
+      const count = await campCollection.countDocuments(query);
+      res.send({ count });
+    });
+
     // manage camp data based on organizer
 
     app.get("/organizer-camp", async (req, res) => {
       const email = req.query.email;
       const query = { createdBy: email };
-      const result = await campCollection.find(query).toArray();
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page);
+
+      const result = await campCollection
+        .find(query)
+        .skip(size * page)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
