@@ -9,8 +9,10 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// custom middleware
+
 app.get("/", (req, res) => {
-  res.send("Bistro boss server is running");
+  res.send("Medi Camp server is running");
 });
 
 const user = process.env.DB_USER;
@@ -131,8 +133,14 @@ async function run() {
     // participants registered camps
     app.get("/participant-camps", async (req, res) => {
       const email = req.query.email;
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
       const query = { participantEmail: email };
-      const result = await registeredCamps.find(query).toArray();
+      const result = await registeredCamps
+        .find(query)
+        .skip(size * page)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
@@ -152,6 +160,14 @@ async function run() {
     app.get("/feedback", async (req, res) => {
       const result = await feedbackCollection.find().toArray();
       res.send(result);
+    });
+
+    app.get("/campCount", async (req, res) => {
+      const email = req.query.email;
+      const query = { participantEmail: email };
+
+      const count = await registeredCamps.countDocuments(query);
+      res.send({ count });
     });
 
     // --------------------------
