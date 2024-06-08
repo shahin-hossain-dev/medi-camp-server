@@ -254,11 +254,30 @@ async function run() {
       });
       res.send({ clientSecret: paymentIntent.client_secret });
     });
-    // payments collection to database
-    app.post("/payments", async (req, res) => {
+    // update registered camps payment transaction
+    app.post("/payments/:id", async (req, res) => {
+      const id = req.params.id;
       const payment = req.body;
-      const result = await paymentCollection.insertOne(payment);
-      res.send(result);
+      const { transactionId, transactionDate, paymentStatus } = req.body;
+      // update registered camp
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          transactionId,
+          transactionDate,
+          paymentStatus,
+        },
+      };
+      const result = await registeredCamps.updateOne(
+        filter,
+        updatedDoc,
+        option
+      );
+      // insert payments database
+      const paymentResult = await paymentCollection.insertOne(payment);
+      // res.send(result);
+      res.send(paymentResult);
     });
 
     // Send a ping to confirm a successful connection
