@@ -124,9 +124,19 @@ async function run() {
      * participant related API
      * ----------------------------
      */
+    app.get("/registered-camp-count", async (req, res) => {
+      const count = await registeredCamps.estimatedDocumentCount();
+      res.send({ count });
+    });
     // get all participants data
     app.get("/registered-camps", async (req, res) => {
-      const result = await registeredCamps.find().toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const result = await registeredCamps
+        .find()
+        .skip(size * page)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
