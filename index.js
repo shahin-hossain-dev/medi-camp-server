@@ -93,7 +93,7 @@ async function run() {
       }
       const query = { email: email };
       const user = await userCollection.findOne(query);
-      console.log(user);
+      // console.log(user);
       res.send(user);
     });
 
@@ -229,7 +229,15 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/payments", verifyToken, organizerVerify, async (req, res) => {
+    app.get("/paymentCount", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+
+      const count = await paymentCollection.countDocuments(query);
+      res.send({ count });
+    });
+
+    app.get("/payments", verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { email };
       const result = await paymentCollection.find(query).toArray();
