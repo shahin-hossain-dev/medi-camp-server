@@ -49,7 +49,6 @@ async function run() {
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      console.log(req.headers);
       const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {
         expiresIn: "1h",
       });
@@ -87,14 +86,15 @@ async function run() {
     };
 
     // user role
-    app.get("/user/role/:email", async (req, res) => {
+    app.get("/user/role/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-      const query = { email };
-      const option = {
-        projection: { _id: 0, role: 1 },
-      };
-      const role = await userCollection.findOne(query, option);
-      res.send(role);
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      console.log(user);
+      res.send(user);
     });
 
     // get all camps data
@@ -254,6 +254,10 @@ async function run() {
     // ----------------------------
     app.post("/users", async (req, res) => {
       const user = req.body;
+      const exist = await userCollection.findOne({ email: user?.email });
+      if (exist?.email === user.email) {
+        return res.send({ message: "user already exist" });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
       // console.log(user);
