@@ -269,7 +269,13 @@ async function run() {
     app.get("/payments", verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { email };
-      const result = await paymentCollection.find(query).toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const result = await paymentCollection
+        .find(query)
+        .skip(size * page)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
