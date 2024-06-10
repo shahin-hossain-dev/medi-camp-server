@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
@@ -9,34 +10,34 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "medi-camp-86354.web.app",
-      "medi-camp-86354.firebaseapp.com",
-    ],
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "medi-camp-86354.web.app",
+//       "medi-camp-86354.firebaseapp.com",
+//     ],
+//   })
+// );
 app.use(express.json());
-
+app.use(cors());
 app.get("/", (req, res) => {
   res.send("Medi Camp server is running");
 });
 
-const user = process.env.DB_USER;
-const password = process.env.DB_PASS;
+// const user = process.env.DB_USER;
+// const password = process.env.DB_PASS;
 
+// console.log(user, password);
 // mongodb database
 
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const uri = `mongodb+srv://${user}:${password}@cluster0.kdwhpbt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kdwhpbt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    // strict: false,
+    strict: false,
     deprecationErrors: true,
   },
 });
@@ -272,7 +273,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/feedback", verifyToken, async (req, res) => {
+    app.get("/feedback", async (req, res) => {
       const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
