@@ -9,7 +9,15 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "medi-camp-86354.web.app",
+      "medi-camp-86354.firebaseapp.com",
+    ],
+  })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -28,7 +36,7 @@ const uri = `mongodb+srv://${user}:${password}@cluster0.kdwhpbt.mongodb.net/?ret
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: false,
+    // strict: false,
     deprecationErrors: true,
   },
 });
@@ -36,7 +44,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // database collections
     const campCollection = client.db("mediCampDB").collection("camps");
@@ -164,49 +172,69 @@ async function run() {
     // })
 
     // manage camp count
-    app.get("/organizer-camp-count", verifyToken, async (req, res) => {
-      const email = req.query.email;
-      const query = { createdBy: email };
-      const count = await campCollection.countDocuments(query);
-      res.send({ count });
-    });
+    app.get(
+      "/organizer-camp-count",
+      verifyToken,
+      organizerVerify,
+      async (req, res) => {
+        const email = req.query.email;
+        const query = { createdBy: email };
+        const count = await campCollection.countDocuments(query);
+        res.send({ count });
+      }
+    );
 
     // manage camp data based on organizer
 
-    app.get("/organizer-camp", verifyToken, async (req, res) => {
-      const email = req.query.email;
-      const query = { createdBy: email };
-      const size = parseInt(req.query.size);
-      const page = parseInt(req.query.page);
+    app.get(
+      "/organizer-camp",
+      verifyToken,
+      organizerVerify,
+      async (req, res) => {
+        const email = req.query.email;
+        const query = { createdBy: email };
+        const size = parseInt(req.query.size);
+        const page = parseInt(req.query.page);
 
-      const result = await campCollection
-        .find(query)
-        .skip(size * page)
-        .limit(size)
-        .toArray();
-      res.send(result);
-    });
+        const result = await campCollection
+          .find(query)
+          .skip(size * page)
+          .limit(size)
+          .toArray();
+        res.send(result);
+      }
+    );
 
     /**
      * ----------------------------
      * participant related API
      * ----------------------------
      */
-    app.get("/registered-camp-count", async (req, res) => {
-      const count = await registeredCamps.estimatedDocumentCount();
-      res.send({ count });
-    });
+    app.get(
+      "/registered-camp-count",
+      verifyToken,
+      organizerVerify,
+      async (req, res) => {
+        const count = await registeredCamps.estimatedDocumentCount();
+        res.send({ count });
+      }
+    );
     // get all participants data
-    app.get("/registered-camps", verifyToken, async (req, res) => {
-      const page = parseInt(req.query.page);
-      const size = parseInt(req.query.size);
-      const result = await registeredCamps
-        .find()
-        .skip(size * page)
-        .limit(size)
-        .toArray();
-      res.send(result);
-    });
+    app.get(
+      "/registered-camps",
+      verifyToken,
+      organizerVerify,
+      async (req, res) => {
+        const page = parseInt(req.query.page);
+        const size = parseInt(req.query.size);
+        const result = await registeredCamps
+          .find()
+          .skip(size * page)
+          .limit(size)
+          .toArray();
+        res.send(result);
+      }
+    );
 
     // participants registered camps
     app.get("/participant-camps", verifyToken, async (req, res) => {
@@ -229,7 +257,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/paymentCount", async (req, res) => {
+    app.get("/paymentCount", verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
 
@@ -244,12 +272,12 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/feedback", async (req, res) => {
+    app.get("/feedback", verifyToken, async (req, res) => {
       const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
 
-    app.get("/campCount", async (req, res) => {
+    app.get("/campCount", verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { participantEmail: email };
 
@@ -272,11 +300,16 @@ async function run() {
     });
     // insert new camp to database
 
-    app.post("/camp-register", verifyToken, async (req, res) => {
-      const newCamp = req.body;
-      const result = await campCollection.insertOne(newCamp);
-      res.send(result);
-    });
+    app.post(
+      "/camp-register",
+      verifyToken,
+      organizerVerify,
+      async (req, res) => {
+        const newCamp = req.body;
+        const result = await campCollection.insertOne(newCamp);
+        res.send(result);
+      }
+    );
 
     //registered-participant post to database
 
@@ -296,7 +329,7 @@ async function run() {
     });
 
     // payment integrated System
-    app.post("/create-payment-intent", async (req, res) => {
+    app.post("/create-payment-intent", verifyToken, async (req, res) => {
       const { pay } = req.body;
       const amount = pay * 100; //stripe
 
@@ -413,7 +446,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
