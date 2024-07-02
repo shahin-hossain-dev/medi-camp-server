@@ -3,7 +3,7 @@
 ## How to run this project locally
 If you run this project locally you hove to must follow frontend instruction first. [click here](https://github.com/shahin-hossain-dev/medi-camp-client)
 
-follow these stpes below 
+- follow these stpes below: 
 step 1: You have to clone this repository to your local machine open your command terminal 
 
 ```bash
