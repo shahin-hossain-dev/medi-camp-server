@@ -10,7 +10,7 @@ step 1: You have to clone this repository to your local machine open your comman
 git clone https://github.com/shahin-hossain-dev/medi-camp-server.git
 ```
 
-step 2: Open your code base make .env file in the root of your project folder and you need some credentials 
+step 2: Open the project on your code base make .env file in the root of your project folder and you need some credentials 
 - mongoDB database user & password
 - DB_USER=username, DB_PASS=password
 - ACCESS_SECRET_TOKEN=any token id
@@ -30,4 +30,4 @@ nodemon index.js
 ```
 
 
-##Enjoy
+## Enjoy
